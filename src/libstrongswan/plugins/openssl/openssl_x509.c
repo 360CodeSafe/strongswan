@@ -389,7 +389,7 @@ METHOD(certificate_t, issued_by, bool,
 	public_key_t *key;
 	bool valid;
 	x509_t *x509 = (x509_t*)issuer;
-	ASN1_BIT_STRING *sig;
+	const ASN1_BIT_STRING *sig;
 	chunk_t tbs;
 
 	if (&this->public.x509.interface == issuer)
@@ -993,7 +993,7 @@ static bool parse_subjectKeyIdentifier_ext(private_openssl_x509_t *this,
  */
 static bool parse_extensions(private_openssl_x509_t *this)
 {
-	STACK_OF(X509_EXTENSION) *extensions;
+	const STACK_OF(X509_EXTENSION) *extensions;
 	int i, num;
 
 	/* unless we see a keyUsage extension we are compliant with RFC 4945 */
@@ -1077,7 +1077,7 @@ static bool parse_certificate(private_openssl_x509_t *this)
 	hasher_t *hasher;
 	chunk_t chunk, sig_scheme, sig_scheme_tbs;
 	ASN1_OBJECT *oid;
-	X509_ALGOR *alg;
+	const X509_ALGOR *alg;
 
 	this->x509 = d2i_X509(NULL, &ptr, this->encoding.len);
 	if (!this->x509)
@@ -1135,9 +1135,9 @@ static bool parse_certificate(private_openssl_x509_t *this)
 	/* while X509_ALGOR_cmp() is declared in the headers of older OpenSSL
 	 * versions, at least on Ubuntu 14.04 it is not actually defined */
 	X509_get0_signature(NULL, &alg, this->x509);
-	sig_scheme = openssl_i2chunk(X509_ALGOR, alg);
+	sig_scheme = openssl_i2chunk(X509_ALGOR, (X509_ALGOR*)alg);
 	alg = X509_get0_tbs_sigalg(this->x509);
-	sig_scheme_tbs = openssl_i2chunk(X509_ALGOR, alg);
+	sig_scheme_tbs = openssl_i2chunk(X509_ALGOR, (X509_ALGOR*)alg);
 	if (!chunk_equals(sig_scheme, sig_scheme_tbs))
 	{
 		free(sig_scheme_tbs.ptr);
